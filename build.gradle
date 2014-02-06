@@ -1,0 +1,33 @@
+versions = [
+	tyrus: "1.4"
+]
+
+libraries = [
+	junit: "junit:junit:4.11",
+	mockito: "org.mockito:mockito-all:1.9.5",
+	tyrus_client: "org.glassfish.tyrus:tyrus-client:${versions.tyrus}",
+	tyrus_server: "org.glassfish.tyrus:tyrus-server:${versions.tyrus}",
+	tyrus_server_container: "org.glassfish.tyrus:tyrus-container-grizzly-server:${versions.tyrus}"
+]
+
+subprojects {
+	apply plugin: 'java'
+	apply plugin: 'eclipse'
+	
+	repositories {
+		mavenCentral()
+	}
+		
+	dependencies {
+		testCompile libraries.junit
+		testCompile libraries.mockito
+	}
+}
+
+project(':server') {
+	dependencies {
+		compile libraries.tyrus_server
+		compile libraries.tyrus_server_container
+		testCompile libraries.tyrus_client
+	}
+}
