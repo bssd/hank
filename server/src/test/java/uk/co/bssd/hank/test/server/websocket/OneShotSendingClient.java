@@ -15,11 +15,11 @@ import javax.websocket.Session;
 
 import org.glassfish.tyrus.client.ClientManager;
 
-public class OneShotClient {
+public class OneShotSendingClient {
 
 	private final URI uri;
 
-	public OneShotClient(String hostName, int port, String contextPath) {
+	public OneShotSendingClient(String hostName, int port, String contextPath) {
 		this.uri = uri(hostName, port, contextPath);
 	}
 
