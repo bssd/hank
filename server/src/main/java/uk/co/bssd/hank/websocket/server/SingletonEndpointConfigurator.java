@@ -1,4 +1,4 @@
-package uk.co.bssd.hank.server.websocket;
+package uk.co.bssd.hank.websocket.server;
 
 import java.util.HashMap;
 import java.util.Map;

@@ -1,8 +1,9 @@
-package uk.co.bssd.hank.test.server.websocket;
+package uk.co.bssd.hank.test.websocket;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
+import static uk.co.bssd.hank.datetime.Time.seconds;
 
 import java.util.Collections;
 
@@ -13,15 +14,17 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import uk.co.bssd.hank.server.websocket.BroadcastEndpoint;
-import uk.co.bssd.hank.server.websocket.EchoEndpoint;
-import uk.co.bssd.hank.server.websocket.SingletonEndpointConfigurator;
+import uk.co.bssd.hank.datetime.Time;
+import uk.co.bssd.hank.websocket.client.WebSocketClient;
+import uk.co.bssd.hank.websocket.server.BroadcastEndpoint;
+import uk.co.bssd.hank.websocket.server.EchoEndpoint;
+import uk.co.bssd.hank.websocket.server.SingletonEndpointConfigurator;
 
 public class TyrusIntegrationTest {
 
-	private static final String HOST_NAME = "localhost";
 	private static final int PORT = 8080;
-	private static final String CONTEXT_PATH = "/websocket";
+	
+	private static final Time TIMEOUT_CONNECT = seconds(10);
 
 	private Server server;
 	private BroadcastEndpoint broadcastEndpoint;
@@ -35,7 +38,7 @@ public class TyrusIntegrationTest {
 		SingletonEndpointConfigurator.register(BroadcastEndpoint.class,
 				this.broadcastEndpoint);
 
-		this.server = new Server(HOST_NAME, PORT, CONTEXT_PATH,
+		this.server = new Server("localhost", PORT, "/websocket",
 				Collections.<String, Object> emptyMap(), EchoEndpoint.class,
 				BroadcastEndpoint.class);
 		this.server.start();
@@ -50,19 +53,23 @@ public class TyrusIntegrationTest {
 	@Test
 	public void testSendAndReceiveMessage() {
 		String message = "this ain't a love song";
-		OneShotSendingClient client = new OneShotSendingClient(HOST_NAME, PORT,
-				CONTEXT_PATH);
-		String response = client.sendMessage(message);
+		WebSocketClient client = clientConnectedToEndpoint("echo");
+		String response = client.send(message);
 		assertThat(response, is(equalTo(message)));
 	}
 
 	@Test
 	public void testBroadcastMessageToClient() {
 		String message = "I'm on my way, home sweet home";
-		OneShotReceivingClient client = new OneShotReceivingClient(HOST_NAME,
-				PORT, CONTEXT_PATH, "broadcast");
-		client.connect();
+		WebSocketClient client = clientConnectedToEndpoint("broadcast");
 		this.broadcastEndpoint.broadcast(message);
 		assertThat(client.receive(), is(equalTo(message)));
+	}
+
+	private WebSocketClient clientConnectedToEndpoint(String endpoint) {
+		WebSocketClient client = WebSocketClient.aClient().withPort(PORT)
+				.withEndpoint(endpoint).build();
+		client.connect(TIMEOUT_CONNECT);
+		return client;
 	}
 }
