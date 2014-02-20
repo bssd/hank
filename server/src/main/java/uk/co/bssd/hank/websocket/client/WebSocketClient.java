@@ -1,11 +1,12 @@
 package uk.co.bssd.hank.websocket.client;
 
+import static uk.co.bssd.hank.datetime.Time.seconds;
+
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import javax.websocket.ClientEndpointConfig;
 import javax.websocket.MessageHandler;
@@ -20,12 +21,6 @@ public class WebSocketClient {
 	public static final String DEFAULT_HOST = "localhost";
 	public static final int DEFAULT_PORT = 80;
 	public static final String DEFAULT_CONTEXT = "websocket";
-
-	private final URI uri;
-	private final CountDownLatch messageLatch;
-	private final AtomicReference<String> receivedMessage;
-
-	private Session session;
 
 	public static WebSocketClientBuilder aClient() {
 		return new WebSocketClientBuilder().withHost(DEFAULT_HOST)
@@ -69,11 +64,15 @@ public class WebSocketClient {
 		}
 	}
 
+	private final URI uri;
+	private final BlockingQueue<String> messagesReceived;
+	
+	private Session session;
+	
 	private WebSocketClient(String hostName, int port, String contextPath,
 			String endpoint) {
 		this.uri = uri(hostName, port, contextPath, endpoint);
-		this.messageLatch = new CountDownLatch(1);
-		this.receivedMessage = new AtomicReference<String>();
+		this.messagesReceived = new LinkedBlockingQueue<String>();
 	}
 
 	private URI uri(String hostName, int port, String contextPath,
@@ -92,8 +91,7 @@ public class WebSocketClient {
 		this.session = future.await(timeout);
 		this.session.addMessageHandler(new MessageHandler.Whole<String>() {
 			public void onMessage(String message) {
-				receivedMessage.set(message);
-				messageLatch.countDown();
+				messagesReceived.add(message);
 			}
 		});
 	}
@@ -112,13 +110,12 @@ public class WebSocketClient {
 		} catch (IOException e) {
 			throw new WebSocketClientException("Unable to send message", e);
 		}
-		return receive();
+		return receive(seconds(10));
 	}
 
-	public String receive() {
+	public String receive(Time timeout) {
 		try {
-			this.messageLatch.await(10, TimeUnit.SECONDS);
-			return this.receivedMessage.get();
+			return this.messagesReceived.poll(timeout.quantity(), timeout.unit());
 		} catch (InterruptedException e) {
 			throw new WebSocketClientException(
 					"Interrupted waiting on receive", e);
