@@ -10,10 +10,26 @@ libraries = [
 	tyrus_server_container: "org.glassfish.tyrus:tyrus-container-grizzly-server:${versions.tyrus}"
 ]
 
+buildscript {
+	repositories {
+		mavenCentral()
+	}
+	dependencies {
+		classpath 'info.solidsoft.gradle.pitest:gradle-pitest-plugin:0.32.0'
+	}
+}
+
 subprojects {
 	apply plugin: 'java'
+	apply plugin: 'pitest'
 	apply plugin: 'eclipse'
-	
+
+	pitest {
+		targetClasses = ['uk.co.bssd.hank.*'] 
+		threads = 4
+		outputFormats = ['XML', 'HTML']
+	}
+		
 	repositories {
 		mavenCentral()
 	}

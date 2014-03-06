@@ -21,12 +21,10 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import uk.co.bssd.hank.Announcer;
 import uk.co.bssd.hank.SessionListener;
 import uk.co.bssd.hank.datetime.Time;
 import uk.co.bssd.hank.websocket.client.WebSocketClient;
 import uk.co.bssd.hank.websocket.server.BroadcastEndpoint;
-import uk.co.bssd.hank.websocket.server.EchoEndpoint;
 import uk.co.bssd.hank.websocket.server.WebSocketServer;
 
 public class TyrusIntegrationTest {
