@@ -5,8 +5,6 @@ import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
-import java.util.EventListener;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -24,7 +22,7 @@ public class AnnouncerTest {
 		private static final long serialVersionUID = 1L;
 	}
 
-	public interface Listener extends EventListener {
+	public interface Listener {
 		void eventA();
 		void eventB();
 		void eventWithArguments(int a, int b);

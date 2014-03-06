@@ -5,10 +5,9 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.ArrayList;
-import java.util.EventListener;
 import java.util.List;
 
-public class Announcer<T extends EventListener> {
+public class Announcer<T> {
 
 	public static interface ExceptionHandler {
 		void onException(Throwable e);
@@ -80,7 +79,7 @@ public class Announcer<T extends EventListener> {
 		}
 	}
 
-	public static <T extends EventListener> Announcer<T> to(
+	public static <T> Announcer<T> to(
 			Class<? extends T> listenerType) {
 		return new Announcer<T>(listenerType);
 	}

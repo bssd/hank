@@ -21,6 +21,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import uk.co.bssd.hank.Announcer;
 import uk.co.bssd.hank.SessionListener;
 import uk.co.bssd.hank.datetime.Time;
 import uk.co.bssd.hank.websocket.client.WebSocketClient;
@@ -42,7 +43,6 @@ public class TyrusIntegrationTest {
 		this.broadcastEndpoint = new BroadcastEndpoint();
 
 		this.server = aServer().withPort(PORT)
-				.addEndpoint(EchoEndpoint.class, new EchoEndpoint())
 				.addEndpoint(BroadcastEndpoint.class, this.broadcastEndpoint)
 				.build();
 		this.server.start();
@@ -52,12 +52,12 @@ public class TyrusIntegrationTest {
 	public void after() {
 		this.server.stop();
 	}
-	
-	@Test 
+
+	@Test
 	public void testServerNotifiedWhenNewSessionConnects() {
 		SessionListener mockSessionListener = mock(SessionListener.class);
 		this.server.addSessionListener(mockSessionListener);
-		
+
 		clientConnectedToEndpoint("echo");
 		verify(mockSessionListener, timeout(1000)).onOpen(anyString());
 	}
@@ -90,13 +90,12 @@ public class TyrusIntegrationTest {
 
 		assertThat(messagesReceived, hasItems(toArray(messagesToSend)));
 	}
-	
+
 	private String receiveOne(WebSocketClient client) {
 		return receive(client, 1).get(0);
 	}
 
-	private List<String> receive(
-			WebSocketClient client, int numberExpected) {
+	private List<String> receive(WebSocketClient client, int numberExpected) {
 		List<String> messagesReceived = new ArrayList<String>();
 
 		for (int i = 0; i < numberExpected; i++) {

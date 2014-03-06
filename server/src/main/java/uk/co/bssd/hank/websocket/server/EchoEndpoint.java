@@ -5,13 +5,21 @@ import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
+import uk.co.bssd.hank.Announcer;
+import uk.co.bssd.hank.SessionListener;
+
 @ServerEndpoint(value = "/echo", configurator=SingletonEndpointConfigurator.class)
 public class EchoEndpoint {
 	
+	private Announcer<SessionListener> sessionListeners;
+	
+	public EchoEndpoint(Announcer<SessionListener> sessionListeners) {
+		this.sessionListeners = sessionListeners;
+	}
+	
 	@OnOpen
 	public void onOpen(Session session) {
-		System.out.println("Poo");
-		System.out.println(session);
+		this.sessionListeners.announce().onOpen(session.getId());
 	}
 	
     @OnMessage
