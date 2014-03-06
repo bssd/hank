@@ -20,6 +20,7 @@ public class BroadcastEndpoint {
 	@OnOpen
 	public void onOpen(Session session) {
 		this.sessions.add(session);
+		
 	}
 	
 	@OnClose

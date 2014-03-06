@@ -8,6 +8,8 @@ import javax.websocket.DeploymentException;
 
 import org.glassfish.tyrus.server.Server;
 
+import uk.co.bssd.hank.SessionListener;
+
 public class WebSocketServer {
 
 	public static final String DEFAULT_HOST = "localhost";
@@ -77,5 +79,9 @@ public class WebSocketServer {
 	public void stop() {
 		this.server.stop();
 		SingletonEndpointConfigurator.clear();
+	}
+
+	public void addSessionListener(SessionListener mockSessionListener) {
+		// TODO Auto-generated method stub
 	}
 }

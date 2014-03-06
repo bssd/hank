@@ -4,6 +4,10 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.hasItems;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.timeout;
+import static org.mockito.Mockito.verify;
 import static uk.co.bssd.hank.datetime.Time.seconds;
 import static uk.co.bssd.hank.websocket.server.WebSocketServer.aServer;
 
@@ -17,6 +21,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import uk.co.bssd.hank.SessionListener;
 import uk.co.bssd.hank.datetime.Time;
 import uk.co.bssd.hank.websocket.client.WebSocketClient;
 import uk.co.bssd.hank.websocket.server.BroadcastEndpoint;
@@ -46,6 +51,15 @@ public class TyrusIntegrationTest {
 	@After
 	public void after() {
 		this.server.stop();
+	}
+	
+	@Test 
+	public void testServerNotifiedWhenNewSessionConnects() {
+		SessionListener mockSessionListener = mock(SessionListener.class);
+		this.server.addSessionListener(mockSessionListener);
+		
+		clientConnectedToEndpoint("echo");
+		verify(mockSessionListener, timeout(1000)).onOpen(anyString());
 	}
 
 	@Test
