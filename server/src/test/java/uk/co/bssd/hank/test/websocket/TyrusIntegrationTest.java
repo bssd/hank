@@ -25,6 +25,7 @@ import uk.co.bssd.hank.SessionListener;
 import uk.co.bssd.hank.datetime.Time;
 import uk.co.bssd.hank.websocket.client.WebSocketClient;
 import uk.co.bssd.hank.websocket.server.BroadcastEndpoint;
+import uk.co.bssd.hank.websocket.server.EchoEndpoint;
 import uk.co.bssd.hank.websocket.server.WebSocketServer;
 
 public class TyrusIntegrationTest {
@@ -34,14 +35,17 @@ public class TyrusIntegrationTest {
 	private static final Time TIMEOUT_RECEIVE = seconds(10);
 
 	private WebSocketServer server;
+	private EchoEndpoint echoEndpoint;
 	private BroadcastEndpoint broadcastEndpoint;
 
 	@Before
 	public void before() throws DeploymentException {
 		this.broadcastEndpoint = new BroadcastEndpoint();
+		this.echoEndpoint = new EchoEndpoint();
 
 		this.server = aServer().withPort(PORT)
-				.addEndpoint(BroadcastEndpoint.class, this.broadcastEndpoint)
+				.addEndpoint(this.broadcastEndpoint)
+				.addEndpoint(this.echoEndpoint)
 				.build();
 		this.server.start();
 	}
@@ -54,7 +58,7 @@ public class TyrusIntegrationTest {
 	@Test
 	public void testServerNotifiedWhenNewSessionConnects() {
 		SessionListener mockSessionListener = mock(SessionListener.class);
-		this.server.addSessionListener(mockSessionListener);
+		this.echoEndpoint.addSessionListener(mockSessionListener);
 
 		clientConnectedToEndpoint("echo");
 		verify(mockSessionListener, timeout(1000)).onOpen(anyString());

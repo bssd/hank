@@ -8,13 +8,17 @@ import javax.websocket.server.ServerEndpoint;
 import uk.co.bssd.hank.Announcer;
 import uk.co.bssd.hank.SessionListener;
 
-@ServerEndpoint(value = "/echo", configurator=SingletonEndpointConfigurator.class)
+@ServerEndpoint(value = "/echo")
 public class EchoEndpoint {
 	
-	private Announcer<SessionListener> sessionListeners;
+	private final Announcer<SessionListener> sessionListeners;
 	
-	public EchoEndpoint(Announcer<SessionListener> sessionListeners) {
-		this.sessionListeners = sessionListeners;
+	public EchoEndpoint() {
+		this.sessionListeners = Announcer.to(SessionListener.class);
+	}
+	
+	public void addSessionListener(SessionListener listener) {
+		this.sessionListeners.addListener(listener);
 	}
 	
 	@OnOpen

@@ -8,7 +8,7 @@ import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
-@ServerEndpoint(value = "/broadcast", configurator=SingletonEndpointConfigurator.class)
+@ServerEndpoint(value = "/broadcast")
 public class BroadcastEndpoint {
 
 	private final Set<Session> sessions;

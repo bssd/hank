@@ -8,9 +8,6 @@ import javax.websocket.DeploymentException;
 
 import org.glassfish.tyrus.server.Server;
 
-import uk.co.bssd.hank.Announcer;
-import uk.co.bssd.hank.SessionListener;
-
 public class WebSocketServer {
 
 	public static final String DEFAULT_HOST = "localhost";
@@ -48,9 +45,9 @@ public class WebSocketServer {
 			return this;
 		}
 
-		public WebSocketServerBuilder addEndpoint(Class<?> clazz,
-				Object instance) {
-			SingletonEndpointConfigurator.register(clazz, instance);
+		public WebSocketServerBuilder addEndpoint(Object instance) {
+			Class<? extends Object> clazz = instance.getClass();
+			DefaultServerEndpointConfigurator.register(clazz, instance);
 			this.endpoints.add(clazz);
 			return this;
 		}
@@ -62,13 +59,9 @@ public class WebSocketServer {
 	}
 
 	private final Server server;
-	private final Announcer<SessionListener> sessionListeners;
 
 	private WebSocketServer(String host, int port, String context,
 			Set<Class<?>> endpoints) {
-		this.sessionListeners = Announcer.to(SessionListener.class);
-		SingletonEndpointConfigurator.register(EchoEndpoint.class, new EchoEndpoint(this.sessionListeners));
-		endpoints.add(EchoEndpoint.class);
 		this.server = new Server(host, port, context,
 				Collections.<String, Object> emptyMap(), endpoints);
 	}
@@ -83,10 +76,5 @@ public class WebSocketServer {
 	
 	public void stop() {
 		this.server.stop();
-		SingletonEndpointConfigurator.clear();
-	}
-
-	public void addSessionListener(SessionListener sessionListener) {
-		this.sessionListeners.addListener(sessionListener);
 	}
 }
