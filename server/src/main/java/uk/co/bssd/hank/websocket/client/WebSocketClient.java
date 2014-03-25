@@ -1,6 +1,6 @@
 package uk.co.bssd.hank.websocket.client;
 
-import static uk.co.bssd.hank.datetime.Time.seconds;
+import static uk.co.bssd.hank.datetime.TimeMeasure.seconds;
 
 import java.io.IOException;
 import java.net.URI;
@@ -14,7 +14,7 @@ import javax.websocket.Session;
 
 import org.glassfish.tyrus.client.ClientManager;
 
-import uk.co.bssd.hank.datetime.Time;
+import uk.co.bssd.hank.datetime.TimeMeasure;
 
 public class WebSocketClient {
 
@@ -85,7 +85,7 @@ public class WebSocketClient {
 		}
 	}
 
-	public void connect(Time timeout) {
+	public void connect(TimeMeasure timeout) {
 		ConnectFuture future = new ConnectFuture();
 		initiateConnection(future);
 		this.session = future.await(timeout);
@@ -113,7 +113,7 @@ public class WebSocketClient {
 		return receive(seconds(10));
 	}
 
-	public String receive(Time timeout) {
+	public String receive(TimeMeasure timeout) {
 		try {
 			return this.messagesReceived.poll(timeout.quantity(), timeout.unit());
 		} catch (InterruptedException e) {

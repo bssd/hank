@@ -8,7 +8,7 @@ import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
-import static uk.co.bssd.hank.datetime.Time.seconds;
+import static uk.co.bssd.hank.datetime.TimeMeasure.seconds;
 import static uk.co.bssd.hank.websocket.server.WebSocketServer.aServer;
 
 import java.util.ArrayList;
@@ -22,7 +22,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import uk.co.bssd.hank.SessionListener;
-import uk.co.bssd.hank.datetime.Time;
+import uk.co.bssd.hank.datetime.TimeMeasure;
 import uk.co.bssd.hank.websocket.client.WebSocketClient;
 import uk.co.bssd.hank.websocket.server.BroadcastEndpoint;
 import uk.co.bssd.hank.websocket.server.EchoEndpoint;
@@ -31,8 +31,8 @@ import uk.co.bssd.hank.websocket.server.WebSocketServer;
 public class TyrusIntegrationTest {
 
 	private static final int PORT = 8080;
-	private static final Time TIMEOUT_CONNECT = seconds(10);
-	private static final Time TIMEOUT_RECEIVE = seconds(10);
+	private static final TimeMeasure TIMEOUT_CONNECT = seconds(10);
+	private static final TimeMeasure TIMEOUT_RECEIVE = seconds(10);
 
 	private WebSocketServer server;
 	private EchoEndpoint echoEndpoint;

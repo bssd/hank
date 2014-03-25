@@ -6,7 +6,7 @@ import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfig;
 import javax.websocket.Session;
 
-import uk.co.bssd.hank.datetime.Time;
+import uk.co.bssd.hank.datetime.TimeMeasure;
 
 /* default */class ConnectFuture extends Endpoint {
 	private final CountDownLatch connectionLatch;
@@ -22,7 +22,7 @@ import uk.co.bssd.hank.datetime.Time;
 		this.connectionLatch.countDown();
 	}
 
-	public Session await(Time timeout) {
+	public Session await(TimeMeasure timeout) {
 		try {
 			this.connectionLatch.await(timeout.quantity(), timeout.unit());
 		} catch (InterruptedException e) {
