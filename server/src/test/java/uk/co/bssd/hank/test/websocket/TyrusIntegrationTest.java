@@ -6,7 +6,6 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 import static uk.co.bssd.hank.datetime.TimeMeasure.seconds;
 import static uk.co.bssd.hank.websocket.server.WebSocketServer.aServer;
@@ -14,20 +13,29 @@ import static uk.co.bssd.hank.websocket.server.WebSocketServer.aServer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import javax.websocket.DeploymentException;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.verification.VerificationWithTimeout;
 
 import uk.co.bssd.hank.SessionListener;
 import uk.co.bssd.hank.datetime.TimeMeasure;
 import uk.co.bssd.hank.websocket.client.WebSocketClient;
 import uk.co.bssd.hank.websocket.server.BroadcastEndpoint;
 import uk.co.bssd.hank.websocket.server.EchoEndpoint;
+import uk.co.bssd.hank.websocket.server.SubscriptionEndpoint;
+import uk.co.bssd.hank.websocket.server.SubscriptionEndpoint.SubscriptionListener;
 import uk.co.bssd.hank.websocket.server.WebSocketServer;
 
+@RunWith(value = MockitoJUnitRunner.class)
 public class TyrusIntegrationTest {
 
 	private static final int PORT = 8080;
@@ -37,16 +45,23 @@ public class TyrusIntegrationTest {
 	private WebSocketServer server;
 	private EchoEndpoint echoEndpoint;
 	private BroadcastEndpoint broadcastEndpoint;
+	private SubscriptionEndpoint subscriptionEndpoint;
+
+	@Mock
+	private SubscriptionListener subscriptionListener;
 
 	@Before
 	public void before() throws DeploymentException {
 		this.broadcastEndpoint = new BroadcastEndpoint();
 		this.echoEndpoint = new EchoEndpoint();
+		this.subscriptionEndpoint = new SubscriptionEndpoint();
+		this.subscriptionEndpoint
+				.addSubscriptionListener(this.subscriptionListener);
 
 		this.server = aServer().withPort(PORT)
 				.addEndpoint(this.broadcastEndpoint)
 				.addEndpoint(this.echoEndpoint)
-				.build();
+				.addEndpoint(this.subscriptionEndpoint).build();
 		this.server.start();
 	}
 
@@ -56,12 +71,29 @@ public class TyrusIntegrationTest {
 	}
 
 	@Test
+	public void testServerNotifiersListenersWhenClientOpensSubscription() {
+		WebSocketClient client = clientConnectedToEndpoint("subscription");
+		String key = "key1";
+		client.send(key);
+		
+		verify(this.subscriptionListener, timeout(TIMEOUT_RECEIVE)).onSubscriptionOpened(key);
+	}
+
+	// @Test
+	// public void testClientSubscribedToKeyReceivesMessageBroadcastForThatKey()
+	// {
+	// String key
+	// WebSocketClient client = clientConnectedToEndpoint("subscription");
+	// client.send(")
+	// }
+
+	@Test
 	public void testServerNotifiedWhenNewSessionConnects() {
 		SessionListener mockSessionListener = mock(SessionListener.class);
 		this.echoEndpoint.addSessionListener(mockSessionListener);
 
 		clientConnectedToEndpoint("echo");
-		verify(mockSessionListener, timeout(1000)).onOpen(anyString());
+		verify(mockSessionListener, timeout(TIMEOUT_RECEIVE)).onOpen(anyString());
 	}
 
 	@Test
@@ -121,5 +153,10 @@ public class TyrusIntegrationTest {
 				.withEndpoint(endpoint).build();
 		client.connect(TIMEOUT_CONNECT);
 		return client;
+	}
+	
+	private VerificationWithTimeout timeout(TimeMeasure timeMeasure) {
+		return Mockito.timeout((int) timeMeasure.convert(TimeUnit.MILLISECONDS)
+				.quantity());
 	}
 }

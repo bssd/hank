@@ -2,5 +2,5 @@ package uk.co.bssd.hank;
 
 public interface SessionListener {
 
-	void onOpen(String anyString);
+	void onOpen(String sessionId);
 }
