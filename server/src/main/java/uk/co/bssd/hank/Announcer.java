@@ -42,6 +42,12 @@ public class Announcer<T> {
 	public void addListener(T listener) {
 		this.listeners.add(listener);
 	}
+	
+	public void addListeners(Iterable<T> listeners) {
+		for (T listener : listeners) {
+			addListener(listener);
+		}
+	}
 
 	public void removeListener(T listener) {
 		this.listeners.remove(listener);

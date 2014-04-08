@@ -2,8 +2,11 @@ package uk.co.bssd.hank.test;
 
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+
+import java.util.Arrays;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -24,8 +27,11 @@ public class AnnouncerTest {
 
 	public interface Listener {
 		void eventA();
+
 		void eventB();
+
 		void eventWithArguments(int a, int b);
+
 		void badEvent() throws Exception;
 	}
 
@@ -62,6 +68,18 @@ public class AnnouncerTest {
 	}
 
 	@Test
+	public void testCanAddMultipleListenersInOneGo() {
+		Listener newListener1 = mock(Listener.class);
+		Listener newListener2 = mock(Listener.class);
+		this.announcer.addListeners(Arrays.asList(newListener1, newListener2));
+
+		this.announcer.announce().eventA();
+
+		verify(newListener1).eventA();
+		verify(newListener2).eventA();
+	}
+
+	@Test
 	public void testPassesEventArgumentsToListeners() {
 		this.announcer.announce().eventWithArguments(1, 2);
 		this.announcer.announce().eventWithArguments(3, 4);
@@ -90,23 +108,24 @@ public class AnnouncerTest {
 
 		verify(this.exceptionHandler).onException(exceptionToThrow);
 	}
-	
+
 	@Test
-	public void testCheckedExceptionThrownByListenerIsPassedToExceptionHandler() throws Exception {
+	public void testCheckedExceptionThrownByListenerIsPassedToExceptionHandler()
+			throws Exception {
 		CheckedException exceptionToThrow = new CheckedException();
 		doThrow(exceptionToThrow).when(this.listener1).badEvent();
-		
+
 		this.announcer.announce().badEvent();
-		
+
 		verify(this.exceptionHandler).onException(exceptionToThrow);
 	}
-	
+
 	@Test
 	public void testExceptionThrownByListenerDoesNotStopOtherListenersBeingInvoked() {
 		doThrow(new IllegalArgumentException()).when(this.listener1).eventA();
-		
+
 		this.announcer.announce().eventA();
-		
+
 		verify(this.listener2).eventA();
 	}
 }
