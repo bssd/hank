@@ -5,6 +5,7 @@ versions = [
 libraries = [
 	junit: "junit:junit:4.11",
 	mockito: "org.mockito:mockito-core:1.9.5",
+	hamcrest: "org.hamcrest:hamcrest-all:1.3",
 	tyrus_client: "org.glassfish.tyrus:tyrus-client:${versions.tyrus}",
 	tyrus_server: "org.glassfish.tyrus:tyrus-server:${versions.tyrus}",
 	tyrus_server_container: "org.glassfish.tyrus:tyrus-container-grizzly-server:${versions.tyrus}"
@@ -38,6 +39,7 @@ subprojects {
 		
 	dependencies {
 		testCompile libraries.junit
+		testCompile libraries.hamcrest
 		testCompile libraries.mockito
 	}
 }
