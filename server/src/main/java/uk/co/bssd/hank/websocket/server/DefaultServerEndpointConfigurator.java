@@ -19,8 +19,4 @@ public class DefaultServerEndpointConfigurator extends TyrusServerEndpointConfig
 			throws InstantiationException {
 		return (T) endpoints.get(clazz);
 	}
-
-	public static void clear() {
-		endpoints.clear();
-	}
 }
