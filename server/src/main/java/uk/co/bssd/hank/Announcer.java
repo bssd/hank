@@ -39,18 +39,21 @@ public class Announcer<T> {
 				}));
 	}
 
-	public void addListener(T listener) {
+	public Announcer<T> addListener(T listener) {
 		this.listeners.add(listener);
+		return this;
 	}
-	
-	public void addListeners(Iterable<T> listeners) {
+
+	public Announcer<T> addListeners(Iterable<T> listeners) {
 		for (T listener : listeners) {
 			addListener(listener);
 		}
+		return this;
 	}
 
-	public void removeListener(T listener) {
+	public Announcer<T> removeListener(T listener) {
 		this.listeners.remove(listener);
+		return this;
 	}
 
 	public Announcer<T> useExceptionHandler(ExceptionHandler handler) {
@@ -66,18 +69,21 @@ public class Announcer<T> {
 		try {
 			for (T listener : this.listeners) {
 				invokeListener(listener, m, args);
-			} 
-		} catch (IllegalAccessException e) {
+			}
+		}
+		catch (IllegalAccessException e) {
 			throw new IllegalArgumentException("could not invoke listener", e);
 		}
 	}
 
-	private void invokeListener(T listener, Method method, Object[] args) throws IllegalAccessException {
+	private void invokeListener(T listener, Method method, Object[] args)
+			throws IllegalAccessException {
 		try {
 			method.invoke(listener, args);
-		} catch (InvocationTargetException e) {
+		}
+		catch (InvocationTargetException e) {
 			Throwable cause = e.getCause();
-		
+
 			if (cause instanceof Error) {
 				throw (Error) cause;
 			}
@@ -85,8 +91,11 @@ public class Announcer<T> {
 		}
 	}
 
-	public static <T> Announcer<T> to(
-			Class<? extends T> listenerType) {
+	public static <T> Announcer<T> to(Class<? extends T> listenerType) {
 		return new Announcer<T>(listenerType);
+	}
+	
+	public static <T> Announcer<T> to(Class<? extends T> listenerType, Iterable<T> listeners) {
+		return to(listenerType).addListeners(listeners);
 	}
 }

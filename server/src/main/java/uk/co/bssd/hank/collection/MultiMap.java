@@ -26,7 +26,7 @@ public class MultiMap<K, V> {
 		return get(key).remove(value);
 	}
 	
-	public Collection<? extends V> get(K key) {
+	public Collection<V> get(K key) {
 		if (this.values.containsKey(key)) {
 			return this.values.get(key);
 		}

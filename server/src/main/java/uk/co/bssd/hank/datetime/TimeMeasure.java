@@ -9,6 +9,10 @@ import java.util.concurrent.TimeUnit;
  */
 public final class TimeMeasure {
 
+	public static TimeMeasure milliseconds(long milliseconds) {
+		return create(milliseconds, TimeUnit.MILLISECONDS);
+	}
+	
 	public static TimeMeasure seconds(long seconds) {
 		return create(seconds, TimeUnit.SECONDS);
 	}

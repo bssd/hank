@@ -7,6 +7,7 @@ import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static uk.co.bssd.hank.datetime.TimeMeasure.milliseconds;
 import static uk.co.bssd.hank.datetime.TimeMeasure.seconds;
 import static uk.co.bssd.hank.websocket.server.WebSocketServer.aServer;
 
@@ -41,6 +42,7 @@ public class TyrusIntegrationTest {
 	private static final int PORT = 8080;
 	private static final TimeMeasure TIMEOUT_CONNECT = seconds(10);
 	private static final TimeMeasure TIMEOUT_RECEIVE = seconds(10);
+	private static final TimeMeasure TIMEOUT_RECEIVE_NONE = milliseconds(200);
 
 	private WebSocketServer server;
 	private EchoEndpoint echoEndpoint;
@@ -73,19 +75,40 @@ public class TyrusIntegrationTest {
 	@Test
 	public void testServerNotifiersListenersWhenClientOpensSubscription() {
 		WebSocketClient client = clientConnectedToEndpoint("subscription");
-		String key = "key1";
-		client.send(key);
-		
-		verify(this.subscriptionListener, timeout(TIMEOUT_RECEIVE)).onSubscriptionOpened(key);
+		havingOpenedSubscriptionTo(client, "key1");
 	}
 
-	// @Test
-	// public void testClientSubscribedToKeyReceivesMessageBroadcastForThatKey()
-	// {
-	// String key
-	// WebSocketClient client = clientConnectedToEndpoint("subscription");
-	// client.send(")
-	// }
+	@Test
+	public void testClientSubscribedToKeyReceivesMessageBroadcastForThatKey() {
+		String key = "event1";
+		String broadcastMessage = "this ain't a love song";
+
+		WebSocketClient client = clientConnectedToEndpoint("subscription");
+		havingOpenedSubscriptionTo(client, key);
+		this.subscriptionEndpoint.broadcast(key, broadcastMessage);
+		assertThat(receiveOne(client), is(broadcastMessage));
+	}
+	
+	@Test
+	public void testClientNotSubscribedToKeyDoesNotReceiveMessageBroadcastForThatKey() {
+		WebSocketClient client = clientConnectedToEndpoint("subscription");
+		this.subscriptionEndpoint.broadcast("event", "ignored");
+		assertThat(receiveNone(client), is(true));
+	}
+	
+	@Test
+	public void testClientSubscribedToOneKeyDoesNotReceiveMessageBroadcastForOtherKey() {
+		String broadcastMessage = "this ain't a love song";
+		
+		WebSocketClient client1 = clientConnectedToEndpoint("subscription");
+		WebSocketClient client2 = clientConnectedToEndpoint("subscription");
+		havingOpenedSubscriptionTo(client1, "event1");
+		havingOpenedSubscriptionTo(client2, "event2");
+		
+		this.subscriptionEndpoint.broadcast("event2", broadcastMessage);
+		assertThat(receiveNone(client1), is(true));
+		assertThat(receiveOne(client2), is(broadcastMessage));
+	}
 
 	@Test
 	public void testServerNotifiedWhenNewSessionConnects() {
@@ -93,7 +116,8 @@ public class TyrusIntegrationTest {
 		this.echoEndpoint.addSessionListener(mockSessionListener);
 
 		clientConnectedToEndpoint("echo");
-		verify(mockSessionListener, timeout(TIMEOUT_RECEIVE)).onOpen(anyString());
+		verify(mockSessionListener, timeout(TIMEOUT_RECEIVE)).onOpen(
+				anyString());
 	}
 
 	@Test
@@ -125,6 +149,16 @@ public class TyrusIntegrationTest {
 		assertThat(messagesReceived, hasItems(toArray(messagesToSend)));
 	}
 
+	private void havingOpenedSubscriptionTo(WebSocketClient client, String key) {
+		client.send(key);
+		verify(this.subscriptionListener, timeout(TIMEOUT_RECEIVE))
+				.onSubscriptionOpened(key);
+	}
+	
+	private boolean receiveNone(WebSocketClient client) {
+		return client.receive(TIMEOUT_RECEIVE_NONE) == null;
+	}
+
 	private String receiveOne(WebSocketClient client) {
 		return receive(client, 1).get(0);
 	}
@@ -154,7 +188,7 @@ public class TyrusIntegrationTest {
 		client.connect(TIMEOUT_CONNECT);
 		return client;
 	}
-	
+
 	private VerificationWithTimeout timeout(TimeMeasure timeMeasure) {
 		return Mockito.timeout((int) timeMeasure.convert(TimeUnit.MILLISECONDS)
 				.quantity());
