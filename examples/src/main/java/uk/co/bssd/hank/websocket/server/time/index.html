@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+
+<meta charset="utf-8" />
+
+<title>TimeServer Example</title>
+
+<script language="javascript" type="text/javascript">
+  var wsUri = "";
+  var output;
+  var timeDiv;
+
+  function init()
+  {
+    output = document.getElementById("output");
+    timeDiv = document.getElementById("time");
+    
+    websocket = new WebSocket("ws://localhost:9001/websocket/subscription");
+    websocket.onopen = function(evt) { onOpen(evt) };
+    websocket.onclose = function(evt) { onClose(evt) };
+    websocket.onmessage = function(evt) { onMessage(evt) };
+    websocket.onerror = function(evt) { onError(evt) };
+  }
+
+  function onOpen(evt)
+  {
+    writeToScreen("CONNECTED");
+    doSend("time");
+  }
+
+  function onClose(evt)
+  {
+    writeToScreen("DISCONNECTED " + evt.code);
+  }
+
+  function onMessage(evt)
+  {
+	  writeTime(evt.data);
+  }
+
+  function onError(evt)
+  {
+    writeToScreen('<span style="color: red;">ERROR:</span> ' + evt.data);
+  }
+
+  function doSend(message)
+  {
+    websocket.send(message);
+    writeToScreen("SENT: " + message); 
+  }
+
+  function writeToScreen(message)
+  {
+    var pre = document.createElement("p");
+    pre.style.wordWrap = "break-word";
+    pre.innerHTML = message;
+    output.appendChild(pre);
+  }
+  
+  function writeTime(time) {
+	  timeDiv.innerHTML = time;
+  }
+
+  window.addEventListener("load", init, false);
+
+</script>
+
+<h2>TimeServer Example</h2>
+
+<div id="time"></div>
+
+<div id="output"></div>

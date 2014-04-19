@@ -51,3 +51,9 @@ project(':server') {
 		testCompile libraries.tyrus_client
 	}
 }
+
+project(':examples') {
+	dependencies {
+		compile project (':server')
+	}
+}

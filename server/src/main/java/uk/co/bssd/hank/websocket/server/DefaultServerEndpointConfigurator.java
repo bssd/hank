@@ -12,7 +12,7 @@ public class DefaultServerEndpointConfigurator extends TyrusServerEndpointConfig
 	public static void register(Class<?> clazz, Object endpoint) {
 		endpoints.put(clazz, endpoint);
 	}
-
+	
 	@SuppressWarnings("unchecked")
 	@Override
 	public <T> T getEndpointInstance(Class<T> clazz)
