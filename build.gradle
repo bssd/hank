@@ -3,6 +3,8 @@ versions = [
 ]
 
 libraries = [
+	gson: "com.google.code.gson:gson:2.2.4",
+	commons_lang: "org.apache.commons:commons-lang3:3.3.2",
 	junit: "junit:junit:4.11",
 	mockito: "org.mockito:mockito-core:1.9.5",
 	hamcrest: "org.hamcrest:hamcrest-all:1.3",
@@ -46,6 +48,8 @@ subprojects {
 
 project(':server') {
 	dependencies {
+		compile libraries.gson
+		compile libraries.commons_lang
 		compile libraries.tyrus_server
 		compile libraries.tyrus_server_container
 		testCompile libraries.tyrus_client

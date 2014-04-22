@@ -1,25 +1,19 @@
 package uk.co.bssd.hank.websocket.server;
 
-import java.io.IOException;
-
 import javax.websocket.OnMessage;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
 import uk.co.bssd.hank.Announcer;
 import uk.co.bssd.hank.collection.MultiMap;
+import uk.co.bssd.hank.websocket.dto.SubscriptionRequest;
+import uk.co.bssd.hank.websocket.dto.SubscriptionRequest.Action;
+
+import com.google.gson.Gson;
 
 @ServerEndpoint(value = "/subscription")
 public class SubscriptionEndpoint {
 
-	public interface MessageSender {
-		void send(String message);
-	}
-
-	public interface SubscriptionListener {
-		void onSubscriptionOpened(String key);
-	}
-	
 	private final Announcer<SubscriptionListener> subscriptionListeners;
 	private final MultiMap<String, MessageSender> subscriptions;
 
@@ -37,20 +31,22 @@ public class SubscriptionEndpoint {
 	}
 
 	@OnMessage
-	public String onMessage(String key, final Session session) {
-		this.subscriptionListeners.announce().onSubscriptionOpened(key);
-		this.subscriptions.put(key, new MessageSender() {
-			@Override
-			public void send(String message) {
-				try {
-					session.getBasicRemote().sendText(message);
-				}
-				catch (IOException e) {
-					// TODO: log this
-				}
-			}
-		});
-		return key;
+	public String onMessage(String message, final Session session) {
+		Gson gson = new Gson();
+		SubscriptionRequest request = gson.fromJson(message, SubscriptionRequest.class);
+		
+		Action action = request.action();
+		String key = request.key();
+		
+		if (action == Action.SUBSCRIBE) {
+			this.subscriptionListeners.announce().onSubscriptionOpened(key);
+			this.subscriptions.put(key, new WebSocketSession(session));
+		} else if (action == Action.UNSUBSCRIBE) {
+			this.subscriptionListeners.announce().onSubscriptionClosed(key);
+			this.subscriptions.remove(key, new WebSocketSession(session));
+		}
+		
+		return message;
 	}
 	
 	private Announcer<MessageSender> announcer(String key) {

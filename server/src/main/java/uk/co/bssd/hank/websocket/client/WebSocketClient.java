@@ -15,6 +15,9 @@ import javax.websocket.Session;
 import org.glassfish.tyrus.client.ClientManager;
 
 import uk.co.bssd.hank.datetime.TimeMeasure;
+import uk.co.bssd.hank.websocket.dto.SubscriptionRequest;
+
+import com.google.gson.Gson;
 
 public class WebSocketClient {
 
@@ -64,10 +67,14 @@ public class WebSocketClient {
 		}
 	}
 
+	private static final TimeMeasure DEFAULT_TIMEOUT_RECEIVE = seconds(10);
+	
 	private final URI uri;
 	private final BlockingQueue<String> messagesReceived;
 	
 	private Session session;
+	
+	private TimeMeasure timeoutReceive = DEFAULT_TIMEOUT_RECEIVE; 
 	
 	private WebSocketClient(String hostName, int port, String contextPath,
 			String endpoint) {
@@ -103,14 +110,28 @@ public class WebSocketClient {
 			throw new WebSocketClientException("Unable to connect to server", e);
 		}
 	}
+	
+	public void subscribe(String key) {
+		SubscriptionRequest request = SubscriptionRequest.subscribe(key);
+		Gson gson = new Gson();
+		String json = gson.toJson(request);
+		send(json);
+	}
+	
+	public void unsubscribe(String key) {
+		SubscriptionRequest request = SubscriptionRequest.unsubscribe(key);
+		Gson gson = new Gson();
+		String json = gson.toJson(request);
+		send(json);
+	}
 
-	public String send(final String message) {
+	public String send(String message) {
 		try {
 			session.getBasicRemote().sendText(message);
 		} catch (IOException e) {
 			throw new WebSocketClientException("Unable to send message", e);
 		}
-		return receive(seconds(10));
+		return receive(this.timeoutReceive);
 	}
 
 	public String receive(TimeMeasure timeout) {

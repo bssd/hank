@@ -33,7 +33,7 @@ import uk.co.bssd.hank.websocket.client.WebSocketClient;
 import uk.co.bssd.hank.websocket.server.BroadcastEndpoint;
 import uk.co.bssd.hank.websocket.server.EchoEndpoint;
 import uk.co.bssd.hank.websocket.server.SubscriptionEndpoint;
-import uk.co.bssd.hank.websocket.server.SubscriptionEndpoint.SubscriptionListener;
+import uk.co.bssd.hank.websocket.server.SubscriptionListener;
 import uk.co.bssd.hank.websocket.server.WebSocketServer;
 
 @RunWith(value = MockitoJUnitRunner.class)
@@ -88,23 +88,33 @@ public class TyrusIntegrationTest {
 		this.subscriptionEndpoint.broadcast(key, broadcastMessage);
 		assertThat(receiveOne(client), is(broadcastMessage));
 	}
-	
+
+	@Test
+	public void testClientOnceClientHasUnsubscribedItNoLongerReceivesBroadcastsForThatKey() {
+		String key = "event1";
+		WebSocketClient client = clientConnectedToEndpoint("subscription");
+		havingOpenedSubscriptionTo(client, key);
+		havingClosedSubscriptionTo(client, key);
+		this.subscriptionEndpoint.broadcast(key, "ignored");
+		assertThat(receiveNone(client), is(true));
+	}
+
 	@Test
 	public void testClientNotSubscribedToKeyDoesNotReceiveMessageBroadcastForThatKey() {
 		WebSocketClient client = clientConnectedToEndpoint("subscription");
 		this.subscriptionEndpoint.broadcast("event", "ignored");
 		assertThat(receiveNone(client), is(true));
 	}
-	
+
 	@Test
 	public void testClientSubscribedToOneKeyDoesNotReceiveMessageBroadcastForOtherKey() {
 		String broadcastMessage = "this ain't a love song";
-		
+
 		WebSocketClient client1 = clientConnectedToEndpoint("subscription");
 		WebSocketClient client2 = clientConnectedToEndpoint("subscription");
 		havingOpenedSubscriptionTo(client1, "event1");
 		havingOpenedSubscriptionTo(client2, "event2");
-		
+
 		this.subscriptionEndpoint.broadcast("event2", broadcastMessage);
 		assertThat(receiveNone(client1), is(true));
 		assertThat(receiveOne(client2), is(broadcastMessage));
@@ -150,11 +160,17 @@ public class TyrusIntegrationTest {
 	}
 
 	private void havingOpenedSubscriptionTo(WebSocketClient client, String key) {
-		client.send(key);
+		client.subscribe(key);
 		verify(this.subscriptionListener, timeout(TIMEOUT_RECEIVE))
 				.onSubscriptionOpened(key);
 	}
-	
+
+	private void havingClosedSubscriptionTo(WebSocketClient client, String key) {
+		client.unsubscribe(key);
+		verify(this.subscriptionListener, timeout(TIMEOUT_RECEIVE))
+				.onSubscriptionClosed(key);
+	}
+
 	private boolean receiveNone(WebSocketClient client) {
 		return client.receive(TIMEOUT_RECEIVE_NONE) == null;
 	}
