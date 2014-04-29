@@ -1,71 +1,115 @@
 <!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
 
-<meta charset="utf-8" />
-
-<title>TimeServer Example</title>
-
-<script language="javascript" type="text/javascript">
-  var wsUri = "";
-  var output;
-  var timeDiv;
-
-  function init()
-  {
-    output = document.getElementById("output");
-    timeDiv = document.getElementById("time");
-    
-    websocket = new WebSocket("ws://localhost:9001/websocket/subscription");
-    websocket.onopen = function(evt) { onOpen(evt) };
-    websocket.onclose = function(evt) { onClose(evt) };
-    websocket.onmessage = function(evt) { onMessage(evt) };
-    websocket.onerror = function(evt) { onError(evt) };
-  }
-
-  function onOpen(evt)
-  {
-    writeToScreen("CONNECTED");
-    doSend("time");
-  }
-
-  function onClose(evt)
-  {
-    writeToScreen("DISCONNECTED " + evt.code);
-  }
-
-  function onMessage(evt)
-  {
-	  writeTime(evt.data);
-  }
-
-  function onError(evt)
-  {
-    writeToScreen('<span style="color: red;">ERROR:</span> ' + evt.data);
-  }
-
-  function doSend(message)
-  {
-    websocket.send(message);
-    writeToScreen("SENT: " + message); 
-  }
-
-  function writeToScreen(message)
-  {
-    var pre = document.createElement("p");
-    pre.style.wordWrap = "break-word";
-    pre.innerHTML = message;
-    output.appendChild(pre);
-  }
-  
-  function writeTime(time) {
-	  timeDiv.innerHTML = time;
-  }
-
-  window.addEventListener("load", init, false);
-
-</script>
-
-<h2>TimeServer Example</h2>
-
-<div id="time"></div>
-
-<div id="output"></div>
+	    <!-- Bootstrap core CSS -->
+	    <link href="http://getbootstrap.com/dist/css/bootstrap.min.css" rel="stylesheet">
+	    <!-- Bootstrap theme -->
+	    <link href="http://getbootstrap.com/dist/css/bootstrap-theme.min.css" rel="stylesheet">
+	
+	    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+	    <!--[if lt IE 9]>
+	      <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+	      <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+	    <![endif]-->
+		
+		<title>TimeServer</title>
+		
+		<script type="text/javascript">
+			var wsUri = "";
+			var output;
+			var timeDiv;
+			var messagesSentDiv;
+			var countMessagesSent = 0;
+		
+			function init() {
+				output = document.getElementById("output");
+				timeDiv = document.getElementById("time");
+				
+				messagesSentDiv = document.getElementById("messages-sent");
+		
+				websocket = new WebSocket("ws://localhost:9001/websocket/subscription");
+				websocket.onopen = function(evt) {
+					onOpen(evt)
+				};
+				websocket.onclose = function(evt) {
+					onClose(evt)
+				};
+				websocket.onmessage = function(evt) {
+					onMessage(evt)
+				};
+				websocket.onerror = function(evt) {
+					onError(evt)
+				};
+			}
+		
+			function onOpen(evt) {
+				writeToScreen("CONNECTED");
+				doSend('{"action":"SUBSCRIBE","key":"time"}');
+			}
+		
+			function onClose(evt) {
+				writeToScreen("DISCONNECTED " + evt.code);
+			}
+		
+			function onMessage(evt) {
+				writeTime(evt.data);
+			}
+		
+			function onError(evt) {
+				writeToScreen('<span style="color: red;">ERROR:</span> ' + evt.data);
+			}
+		
+			function doSend(message) {
+				websocket.send(message);
+				writeMessageSent(message);
+			}
+		
+			function writeToScreen(message) {
+				var pre = document.createElement("p");
+				pre.style.wordWrap = "break-word";
+				pre.innerHTML = message;
+				output.appendChild(pre);
+			}
+			
+			function writeMessageSent(message) {
+				var tableRow = document.createElement("tr");
+				html = "<td>" + (++countMessagesSent) + "</td><td>" + message + "</td>"
+				tableRow.innerHTML = html;
+				messagesSentDiv.appendChild(tableRow)
+			}
+		
+			function writeTime(time) {
+				timeDiv.innerHTML = time;
+			}
+		
+			window.addEventListener("load", init, false);
+		</script>
+	</head>
+	
+	<body>
+		<h2>TimeServer Example</h2>
+		
+		<div class="panel panel-primary">
+      		<div class="panel-heading">
+        		<h3 class="panel-title">Time</h3>
+      		</div>
+      		<div id="time" class="panel-body"></div>
+    	</div>
+		<div id="output"></div>
+		<div class="panel panel-default">
+	      	<div class="panel-heading">Messages Sent</div>
+			<table class="table">
+				<thead>
+					<tr>
+						<th>#</th>
+						<th>Message</th>
+					</tr>
+				</thead>
+				<tbody id="messages-sent">
+				</tbody>
+			</table>
+		</div>
+	</body>
+</html>

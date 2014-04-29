@@ -31,7 +31,7 @@ public class SubscriptionEndpoint {
 	}
 
 	@OnMessage
-	public String onMessage(String message, final Session session) {
+	public void onMessage(String message, Session session) {
 		Gson gson = new Gson();
 		SubscriptionRequest request = gson.fromJson(message, SubscriptionRequest.class);
 		
@@ -45,8 +45,6 @@ public class SubscriptionEndpoint {
 			this.subscriptionListeners.announce().onSubscriptionClosed(key);
 			this.subscriptions.remove(key, new WebSocketSession(session));
 		}
-		
-		return message;
 	}
 	
 	private Announcer<MessageSender> announcer(String key) {
